@@ -1,4 +1,4 @@
-{ lib, stdenv, bintools, c-abi-lens, wasmtime }:
+{ lib, stdenv, bintools, c-abi-lens, wasmtime, pkgsWasm }:
 
 stdenv.mkDerivation {
   pname = "a653-wasmtime";
@@ -9,7 +9,7 @@ stdenv.mkDerivation {
   patches = [ ../patches/allow-cc-override.patch ];
   preConfigure = ''
     mkdir home
-    export HOME="$PWD/home"
+    export PROJECT_HOME="$PWD/home"
   '';
 
   buildInputs = [ bintools wasmtime.dev ];
@@ -20,17 +20,28 @@ stdenv.mkDerivation {
     ln -s ${c-abi-lens}/bin/c-abi-lens $PWD/home/tmp/arinc653-wasm/pkgs/c-abi-lens/target/debug/c-abi-lens
   '';
 
-  makeFlags = [
-    "CC=${stdenv.cc.targetPrefix}gcc"
-    "AR=${stdenv.cc.targetPrefix}ar"
-    "RANLIB=${stdenv.cc.targetPrefix}ranlib"
-  ];
+  buildPhase = ''
+    runHook preBuild
 
-  buildFlags = [ "wasm_host" ];
+    # Build wasm_host target
+    CC=${stdenv.cc.targetPrefix}gcc \
+    AR=${stdenv.cc.targetPrefix}ar \
+    RANLIB=${stdenv.cc.targetPrefix}ranlib \
+    make wasm_host
+
+    ## Build wasm_guest target with WASI_SYSROOT
+    WASMCC=${pkgsWasm.stdenv.cc}/bin/${pkgsWasm.stdenv.cc.targetPrefix}clang \
+    WASI_SYSROOT=${pkgsWasm.wasilibc.dev}/share/wasi-sysroot \
+    make wasm_guest
+
+    runHook postBuild
+  '';
 
   installPhase = ''
     mkdir --parent -- $out/bin
-    mv $HOME/bin/* $out/bin
+    mv $PROJECT_HOME/bin/* $out/bin
   '';
+
   dontStrip = true;
+  hardeningDisable = [ "all" ];
 }

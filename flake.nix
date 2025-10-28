@@ -6,11 +6,27 @@
   inputs.arinc653-wasm.url = "github:psiegl/arinc653-wasm/psiegl-old";
 
   outputs = { self, nixpkgs, flake-utils, arinc653-wasm }:
+    {
+      overlays.default = import ./overlay.nix;
+    }
+    //
     flake-utils.lib.eachSystem [ "x86_64-linux" "aarch64-linux" "powerpc64-linux"] (system:
       let
         # import the nixpkgs, passing the current system as arg
         pkgs = import nixpkgs {
           inherit system;
+          # import our overlay for the package in pkgs/
+          overlays = [ self.overlays.default ];
+        };
+
+        # Cross-compilation pkgs for wasm32-wasi
+        pkgsWasm = import nixpkgs {
+          system = "x86_64-linux";
+          crossSystem = {
+            config = "wasm32-unknown-wasi";
+            useLLVM = true;
+          };
+          overlays = [ self.overlays.default ];
         };
       in
       {
@@ -24,8 +40,9 @@
           # Add needed build tools via overrideAttrs (do NOT pass nativeBuildInputs to callPackage)
           arinc653Packages = arinc653-wasm.packages.${system} or {};
 
-          a653-wasmtime = pkgs.callPackage pkgs/a653wasmtime.nix {
+          a653-wasmtime-x86_64 = pkgs.callPackage pkgs/a653wasmtime.nix {
             inherit (arinc653Packages) c-abi-lens;
+            pkgsWasm = pkgsWasm;  # Pass the cross-compilation pkgs
           };
 
           # override the stdenv to use an older gcc

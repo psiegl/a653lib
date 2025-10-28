@@ -5,22 +5,25 @@
 #export COMMON_SWITCH   = -D__LITTLE_ENDIAN -m32 -rdynamic	
 export COMMON_SWITCH   = -D__LITTLE_ENDIAN -rdynamic	
 
-HOME ?= $(shell pwd)
+PROJECT_HOME ?= $(shell pwd)
 
 #  CC_PATH=/home/tools/gnat/bin/
 CC_PATH=
 
 
 CC = $(CC_PATH)gcc
+WASMCC ?= clang
 #CC = $(CC_PATH)/tools/gcc-810-ppc/bin/powerpc-linux-gnu-gcc
 AR = $(CC_PATH)ar
+PYTHON = python3
 
 
-export TMP_DIR       = $(HOME)/tmp
+export TMP_DIR       = $(PROJECT_HOME)/tmp
 export SRC_DIR       = $(shell pwd)
 export BUILD_DIR     = $(TMP_DIR)/a653_build
-#export BIN_DIR       = $(HOME)/mut_bin_$(BUILD_TARGET)
-export BIN_DIR       = $(HOME)/bin
+#export BIN_DIR       = $(PROJECT_HOME)/mut_bin_$(BUILD_TARGET)
+export BIN_DIR       = $(PROJECT_HOME)/bin
+export VENV_DIR      = $(TMP_DIR)/venv
 
 
 CFLAGS   = -Wall -g2 -fPIC  $(COMMON_SWITCH)
@@ -105,7 +108,7 @@ WASI_SYSROOT ?= /usr/share/wasi-sysroot
 	# 1. we use the wasm32-wasi to include the stdlib (thus having __start() and main() support).
 	# however, long term for avionics it would make sense to drop and go to wasm32-unknown with likely -Wl,-export=_start or similar
 	# 2. --allow-undefined is required for symbols (such as WIT functions) that are not yet defined.
-	cd $(MY_BUILD_DIR); clang -I$(MY_BUILD_DIR)/a653_inc --target=wasm32-wasi -Wl,--export-table -Wl,--allow-undefined --sysroot=$(WASI_SYSROOT)  -o $@ $(SRC_DIR)/$(basename $(notdir $@)).c 1> $(basename $(notdir $@)).wasm32_struct_layout.txt # ../../wasm_guest_trampoline.c
+	cd $(MY_BUILD_DIR); $(WASMCC) -I$(MY_BUILD_DIR)/a653_inc --target=wasm32-wasi -Wl,--export-table -Wl,--allow-undefined --sysroot=$(WASI_SYSROOT)  -o $@ $(SRC_DIR)/$(basename $(notdir $@)).c 1> $(basename $(notdir $@)).wasm32_struct_layout.txt # ../../wasm_guest_trampoline.c
 
 # for testing purpose
 wamr:
@@ -122,12 +125,11 @@ alib:
 
 
 
-
 gcc_version: 
 	gcc -v
 
 mk_build_dir:
-	mkdir -p $(TMP_DIR)	
+	mkdir -p $(TMP_DIR)
 	mkdir -p $(MY_BUILD_DIR)
 	mkdir -p $(BIN_DIR)
 

@@ -9,7 +9,7 @@ stdenv.mkDerivation {
   patches = [ ../patches/allow-cc-override.patch ];
   preConfigure = ''
     mkdir home
-    export HOME="$PWD/home"
+    export PROJECT_HOME="$PWD/home"
   '';
 
   buildInputs = [ bintools ];
@@ -22,7 +22,7 @@ stdenv.mkDerivation {
 
   installPhase = ''
     mkdir --parent -- $out/bin
-    mv $HOME/bin/* $out/bin
+    mv $PROJECT_HOME/bin/* $out/bin
   '';
   dontStrip = true;
 
