@@ -37,7 +37,6 @@
 
 typedef NAME_TYPE        PROCESS_NAME_TYPE;  /* process name type  */
 typedef A653_INTEGER     PROCESS_INDEX_TYPE;
-typedef A653_INTEGER     PRIORITY_TYPE;      /* priority type      */
 
 /* process state type */
 typedef enum PROCESS_STATE_VALUE_TYPE {
@@ -72,46 +71,103 @@ typedef struct {
   PROCESS_ATTRIBUTE_TYPE ATTRIBUTES;          /* process attributes       */
 } PROCESS_STATUS_TYPE;
 
-
 /* function declarations */
 
+WASM_IMPORT_MODULE("arinc653")
+extern void CREATE_PROCESS (
+       /*in */ PROCESS_ATTRIBUTE_TYPE   *ATTRIBUTES,
+       /*out*/ PROCESS_ID_TYPE          *PROCESS_ID,
+       /*out*/ RETURN_CODE_TYPE         *RETURN_CODE );
+
+WASM_IMPORT_MODULE("arinc653")
+extern void SET_PRIORITY (
+       /*in */ PROCESS_ID_TYPE          PROCESS_ID,
+       /*in */ PRIORITY_TYPE            PRIORITY,
+       /*out*/ RETURN_CODE_TYPE         *RETURN_CODE );
+
+WASM_IMPORT_MODULE("arinc653")
+extern void SUSPEND_SELF (
+       /*in */ SYSTEM_TIME_TYPE         TIME_OUT,
+       /*out*/ RETURN_CODE_TYPE         *RETURN_CODE );
+
+WASM_IMPORT_MODULE("arinc653")
+extern void SUSPEND (
+       /*in */ PROCESS_ID_TYPE          PROCESS_ID,
+       /*out*/ RETURN_CODE_TYPE         *RETURN_CODE );
+
+WASM_IMPORT_MODULE("arinc653")
+extern void RESUME (
+       /*in */ PROCESS_ID_TYPE          PROCESS_ID,
+       /*out*/ RETURN_CODE_TYPE         *RETURN_CODE );
+
+WASM_IMPORT_MODULE("arinc653")
+extern void STOP_SELF (void);
+
+WASM_IMPORT_MODULE("arinc653")
+extern void STOP (
+       /*in */ PROCESS_ID_TYPE          PROCESS_ID,
+       /*out*/ RETURN_CODE_TYPE         *RETURN_CODE );
+
+WASM_IMPORT_MODULE("arinc653")
+extern void START (
+       /*in */ PROCESS_ID_TYPE          PROCESS_ID,
+       /*out*/ RETURN_CODE_TYPE         *RETURN_CODE );
+
+WASM_IMPORT_MODULE("arinc653")
+extern void DELAYED_START (
+       /*in */ PROCESS_ID_TYPE          PROCESS_ID,
+       /*in */ SYSTEM_TIME_TYPE         DELAY_TIME,
+       /*out*/ RETURN_CODE_TYPE         *RETURN_CODE );
+
+WASM_IMPORT_MODULE("arinc653")
+extern void LOCK_PREEMPTION (
+       /*out*/ LOCK_LEVEL_TYPE          *LOCK_LEVEL,
+       /*out*/ RETURN_CODE_TYPE         *RETURN_CODE );
+
+WASM_IMPORT_MODULE("arinc653")
+extern void UNLOCK_PREEMPTION (
+       /*out*/ LOCK_LEVEL_TYPE          *LOCK_LEVEL,
+       /*out*/ RETURN_CODE_TYPE         *RETURN_CODE );
+
+WASM_IMPORT_MODULE("arinc653")
+extern void GET_MY_ID (
+       /*out*/ PROCESS_ID_TYPE          *PROCESS_ID,
+       /*out*/ RETURN_CODE_TYPE         *RETURN_CODE );
+
+WASM_IMPORT_MODULE("arinc653")
+extern void GET_PROCESS_ID (
+       /*in */ PROCESS_NAME_TYPE        PROCESS_NAME,
+       /*out*/ PROCESS_ID_TYPE          *PROCESS_ID,
+       /*out*/ RETURN_CODE_TYPE         *RETURN_CODE );
+
+WASM_IMPORT_MODULE("arinc653")
+extern void GET_PROCESS_STATUS (
+       /*in */ PROCESS_ID_TYPE          PROCESS_ID,
+       /*out*/ PROCESS_STATUS_TYPE      *PROCESS_STATUS,
+       /*out*/ RETURN_CODE_TYPE         *RETURN_CODE );
+
+WASM_IMPORT_MODULE("arinc653")
+extern void INITIALIZE_PROCESS_CORE_AFFINITY (
+       /*in */ PROCESS_ID_TYPE          PROCESS_ID,
+       /*in */ PROCESSOR_CORE_ID_TYPE   PROCESSOR_CORE_ID,
+       /*out*/ RETURN_CODE_TYPE         *RETURN_CODE );
+
+WASM_IMPORT_MODULE("arinc653")
+extern void GET_MY_PROCESSOR_CORE_ID (
+       /*out*/ PROCESSOR_CORE_ID_TYPE   *PROCESSOR_CORE_ID,
+       /*out*/ RETURN_CODE_TYPE         *RETURN_CODE );
+
+WASM_IMPORT_MODULE("arinc653")
+extern void GET_MY_INDEX (
+       /*out*/ PROCESS_INDEX_TYPE       *PROCESS_INDEX,
+       /*out*/ RETURN_CODE_TYPE         *RETURN_CODE );
+
+
+#ifndef __wasm__ /* Do not expose non ARINC653 functions into WebAssembly */
 int a653_prcs_init(void);
 
 int a653_sync_prcs(void);
 
-
-extern void GET_PROCESS_ID (PROCESS_NAME_TYPE PROCESS_NAME,
-                            PROCESS_ID_TYPE * PROCESS_ID,
-                            RETURN_CODE_TYPE * RETURN_CODE);
-extern void GET_MY_ID (PROCESS_ID_TYPE * PROCESS_ID,
-		       RETURN_CODE_TYPE * RETURN_CODE);
-extern void GET_PROCESS_STATUS (PROCESS_ID_TYPE PROCESS_ID,
-				PROCESS_STATUS_TYPE * PROCESS_STATUS,
-				RETURN_CODE_TYPE * RETURN_CODE);
-extern void CREATE_PROCESS (PROCESS_ATTRIBUTE_TYPE * ATTRIBUTES,
-			    PROCESS_ID_TYPE * PROCESS_ID,
-			    RETURN_CODE_TYPE * RETURN_CODE);
-extern void SET_PRIORITY (PROCESS_ID_TYPE PROCESS_ID,
-			  PRIORITY_TYPE PRIORITY,
-			  RETURN_CODE_TYPE * RETURN_CODE);
-extern void SUSPEND_SELF (SYSTEM_TIME_TYPE TIME_OUT,
-                          RETURN_CODE_TYPE * RETURN_CODE);
-extern void SUSPEND (PROCESS_ID_TYPE PROCESS_ID,
-		     RETURN_CODE_TYPE * RETURN_CODE);
-extern void RESUME (PROCESS_ID_TYPE PROCESS_ID,
-		    RETURN_CODE_TYPE * RETURN_CODE);
-extern void STOP_SELF  (void);
-extern void STOP (PROCESS_ID_TYPE PROCESS_ID,
-		  RETURN_CODE_TYPE * RETURN_CODE);
-extern void START (PROCESS_ID_TYPE PROCESS_ID,
-		   RETURN_CODE_TYPE * RETURN_CODE);
-extern void DELAYED_START (PROCESS_ID_TYPE PROCESS_ID,
-		           SYSTEM_TIME_TYPE  DELAY_TIME,
-		           RETURN_CODE_TYPE * RETURN_CODE);
-extern void LOCK_PREEMPTION (LOCK_LEVEL_TYPE * LOCK_LEVEL,
-			     RETURN_CODE_TYPE * RETURN_CODE);
-extern void UNLOCK_PREEMPTION (LOCK_LEVEL_TYPE * LOCK_LEVEL,
-			       RETURN_CODE_TYPE * RETURN_CODE);
 extern void a653TimeMonitorProcGet (PROCESS_ID_TYPE PROCESS_ID,
                                     SYSTEM_TIME_TYPE * procTime,
                                     SYSTEM_TIME_TYPE *  refTime,
@@ -120,5 +176,6 @@ extern void a653TimeMonitorProcGet (PROCESS_ID_TYPE PROCESS_ID,
                                     RETURN_CODE_TYPE *  RETURN_CODE);
 extern PROCESS_ID_TYPE procIdFromTaskIdGet (int taskId);
 extern int taskIdFromProcIdGet (PROCESS_ID_TYPE procId);
+#endif /* #ifndef */
 
 #endif /* A653_PROCESS_H */
